@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <div id="app"></div>
+  </head>
+  <body>
+    <script src="../node_modules/@vue/reactivity/dist/reactivity.global.js"></script>
+    <script>
+      let { effect, reactive } = VueReactivity;
+      let state = reactive({ name: "zf", age: 12, other: "xxx", arr: [1, 2, 3] });
+      effect(() => {
+        document.getElementById("app").innerHTML = "xxx" + state.arr;
+      });
+      setTimeout(() => {
+        state.arr.length = 4;
+      }, 1444);
+      // 1.effect中的所有属性 都会收集effect
+      // 2.当这个属性变化 会重新执行effect track trigger
+    </script>
+  </body>
+</html>
