@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 const isObject = (value) => typeof value === "object" && value !== null;
 const extend = Object.assign;
 const isArray = Array.isArray;
+const isFunction = (value) => typeof value === "function";
 const isIntergerKey = (key) => parseInt(key) + "" === key;
 let hasOwnpRroperty = Object.prototype.hasOwnProperty;
 const hasOwn = (target, key) => hasOwnpRroperty.call(target, key);
@@ -101,7 +102,14 @@ function trigger(target, type, key, newValue, oldValue) {
                 }
         }
     }
-    effects.forEach((effect) => effect());
+    effects.forEach((effect) => {
+        if (effect.options.scheduler) {
+            effect.options.scheduler(effect);
+        }
+        else {
+            effect();
+        }
+    });
 }
 // 函数调用是一个栈型结构
 
@@ -272,6 +280,53 @@ function toRefs(object) {
     return ret;
 }
 
+class ComputedRefImpl {
+    setter;
+    _dirty = true; //默认取值时不要用缓存
+    _value;
+    effect;
+    constructor(getter, setter) {
+        this.setter = setter;
+        //ts默认不会加载this上
+        this.effect = effect(getter, {
+            lazy: true,
+            scheduler: () => {
+                if (!this._dirty) {
+                    this._dirty = true;
+                    trigger(this, 1 /* TriggerOrTypes.SET */, "value");
+                }
+            },
+        });
+    }
+    get value() {
+        if (this._dirty) {
+            this._value = this.effect();
+        }
+        track(this, 0 /* TrackOpTypes.GET */, "value");
+        return this._value;
+    }
+    set value(newValue) {
+        this.setter(newValue);
+    }
+}
+// vue 2 和 vue 3 computed原理不一样
+function computed(getterOptions) {
+    let getter;
+    let setter;
+    if (isFunction(getterOptions)) {
+        getter = getterOptions;
+        setter = () => {
+            console.warn("computed value must be readonly");
+        };
+    }
+    else {
+        getter = getterOptions.get;
+        setter = getterOptions.set;
+    }
+    return new ComputedRefImpl(getter, setter);
+}
+
+exports.computed = computed;
 exports.effect = effect;
 exports.reactive = reactive;
 exports.readonly = readonly;

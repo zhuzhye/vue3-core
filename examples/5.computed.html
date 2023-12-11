@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script src="../node_modules/@vue/reactivity/dist/reactivity.global.js"></script>
+    <script>
+      let { effect, ref, reactive, toRef, toRefs, computed } = VueReactivity;
+      const age = ref(18);
+      const myAge = computed(() => {
+        return age.value + 10;
+      });
+      console.log(myAge.value);
+      //   const myAge = computed({
+      //     get:(){},
+      //     set:(){}
+      //   })
+    </script>
+  </body>
+</html>
